@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    div {
+      margin-bottom: 10px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: calc(100% - 22px);
+      box-sizing: border-box;
+      border: black solid 1px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .btn-style-finish {
+      background: rgb(0, 99, 99);
+      border-radius: .3rem;
+      padding: .4rem;
+      transition: all linear 1s;
+    }
+    .btn-style-finish:hover {
+      box-shadow: 0 0 .5rem rgb(0, 99, 99);
+    }
+    .btn-style-disable {
+      background: rgb(99, 99, 99);
+      border-radius: .3rem;
+      padding: .4rem;
+    }
+    .btn-style-wipe {
+      background: rgb(199, 66, 33);
+      border-radius: .3rem;
+      padding: .4rem;
+      transition: all linear 1s;
+    }
+    .btn-style-wipe:hover {
+      box-shadow: 0 0 .5rem crimson;
+    }
+    .poor-view {
+      opacity: .5;
+    }
+    [data-finish] {
+      margin: 0 .5rem;
+    }
+    #activity {
+      position: fixed;
+      top: 75%;
+      left: 25%;
+      border-radius: .3rem;
+      color: black;
+      padding: .3rem;
+      margin: 1rem auto;
+      width: 50%;
+      transition: 1 linear .5s;
+    }
+    #warn {
+      position: fixed;
+      top: 50%;
+      left: 25%;
+      background: rgb(222, 20, 0);
+      border: crimson solid 1px;
+      border-radius: .3rem;
+      color: #ff9;
+      padding: 1rem;
+      margin: 1rem auto;
+      width: 50%;
+      transition: 1 linear .5s;
+    }
+    .vanished {
+      display: none;
+    }
+    #confortable-mode {
+      cursor: pointer;
+      position: fixed;
+      top: 1rem;
+      left: 85%;
+      transition: linear .2s;
+      font-size: 2rem;
+    }
+    #confortable-mode:hover {
+      box-shadow: 0 0 .5rem #222;
+      height: 3rem;
+      width: 3rem;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div id="confortable-mode">🌜</div>
+  <div id="warn" class="vanished"></div>
+  <div id="activity" class="vanished"></div>
+  <h1>Gerenciamento de Tarefas</h1>
+<div>
+<label for="descricaoTarefa">Descrição da Tarefa:</label>
+<input type="text" id="descricaoTarefa" placeholder="Ex: Concluir relatório">
+</div>
+<button id="adicionarBtn">Adicionar Tarefa</button>
+<table id="tabelaTarefas">
+  <thead>
+  <tr>
+  <th>ID</th>
+  <th>Descrição</th>
+  <th>Data de Início</th>
+  <th>Data de Conclusão</th>
+  <th>Ações</th>
+  </tr>
+  </thead>
+  <tbody id="table-body"></tbody>
+</table>
+
+  <script>
+    const confortableMode = document.getElementById('confortable-mode')
+    const taskInput = document.getElementById('descricaoTarefa')
+    const addButton = document.getElementById('adicionarBtn')
+    const tableBody = document.getElementById('table-body')
+    const warn = document.getElementById('warn')
+    const activity = document.getElementById('activity')
+    const activities = []
+    const dates = []
+    
+    let manner = 0
+    let idCounter = 0
+    
+    const manageDate = () => {
+      let dateToday = ''
+      const dateFrame = `${new Date()}`.split(' ')
+      
+      const weekDays = [
+        {day: 'Sun', trans: 'domingo'}, 
+        {day: 'Mon', trans: 'segunda-feira'}, 
+        {day: 'Tue', trans: 'terça-feira'}, 
+        {day: 'Wed', trans: 'quarta-feira'}, 
+        {day: 'Thu', trans: 'quinta-feira'}, 
+        {day: 'Fri', trans: 'sexta-feira'}, 
+        {day: 'Sat', trans: 'sábado'}
+      ]
+      
+      const months = [
+        {month: 'Jan', trans: 'janeiro'},  {month: 'Feb', trans: 'fevereiro'}, 
+        {month: 'Mar', trans: 'março'}, {month: 'Apr', trans: 'abril'},
+        {month: 'May', trans: 'maio'}, {month: 'Jun', trans: 'junho'},
+        {month: 'Jul', trans: 'julho'}, {month: 'Aug', trans: 'agosto'},
+        {month: 'Sep', trans: 'setembro'}, {month: 'Oct', trans: 'october'},
+        {month: 'Nov', trans: 'novembro'}, {month: 'Dec', trans: 'dezembro'}
+      ]
+
+      // ['Sun', 'Jul', '06', '2025', '17:54:03', 'GMT-0300', '(Horário', 'Padrão', 'de', 'Brasília)']
+      dateToday += `${dateFrame[2]} `
+      dateToday += `de ${months.filter(i => i.month === dateFrame[1])[0].trans} `
+      dateToday += `de ${dateFrame[3]}`
+      dateToday += ` [ ${dateFrame[4]} ]`
+      return dateToday
+    }
+
+    const createTableComponent = (boxToAppend, component, counter=0) => {
+      const td = document.createElement('td')
+      td.setAttribute('class', counter)
+      td.textContent = component
+      boxToAppend.appendChild(td)
+      return td
+    }
+
+    const includeTask = () => {
+      if (taskInput.value.trim() != '') {
+        const tr = document.createElement('tr')
+        tr.setAttribute('class', 'box-row')
+
+        const buttonForConclusion = document.createElement('button')
+        buttonForConclusion.classList.add('btn-style-finish')
+        buttonForConclusion.setAttribute('data-finish', idCounter + 1)
+        buttonForConclusion.textContent = 'concluir'
+
+        const buttonForExclusion = document.createElement('button')
+        buttonForExclusion.classList.add('btn-style-wipe')
+        buttonForExclusion.setAttribute('data-wipe', idCounter + 1)
+        buttonForExclusion.textContent = 'retirar ❌'
+        
+        idCounter++
+        
+        var taskObject = {
+          id: idCounter,
+          descricao: taskInput.value,
+          dataInicio: manageDate(),
+          dataConclusao: "",
+        }
+
+        createTableComponent(tr, taskObject.id)
+        createTableComponent(tr, taskObject.descricao)
+        createTableComponent(tr, taskObject.dataInicio)
+        tdForConclusionDate = createTableComponent(tr, taskObject.dataConclusao, idCounter)
+        dates.push(tdForConclusionDate)
+        tr.appendChild(buttonForConclusion)
+        tr.appendChild(buttonForExclusion)
+        tableBody.appendChild(tr)
+        
+        const rows = document.querySelectorAll('.box-row')
+        rows.forEach(row => {
+          manner ? row.style.color = 'white' : row.style.color = 'inherit'
+        })
+
+        activities.push(`🔔 ATUALIZAÇÃO: Tarefa [ ${taskInput.value} ] criada 🥳👍🏽`)
+
+        setTimeout(() => {
+          activity.classList.remove('vanished')
+          activity.style.background = 'rgb(0, 200, 100)'
+          setTimeout(() => {
+            activity.textContent = activities[activities.length - 1]
+            setTimeout(() => {
+            }, 2000)
+          }, 500)
+        }, 500)
+
+        buttonForConclusion.addEventListener('click', () => {
+          if (buttonForConclusion.textContent === 'concluir') {
+            dates.filter(dt => dt.getAttribute('class') === buttonForConclusion.getAttribute('data-finish'))[0].textContent = manageDate()
+            tr.classList.add('poor-view')
+            buttonForConclusion.classList.remove('btn-style-finish')
+            buttonForConclusion.classList.add('btn-style-disable')
+            buttonForConclusion.textContent = 'reabrir'
+
+            activities.push(`🔔 ATUALIZAÇÃO: Tarefa [ ${tr.childNodes[1].textContent} ] concluída 🙂👍🏽✔️`)
+
+            setTimeout(() => {
+              activity.classList.remove('vanished')
+              activity.style.background = 'rgb(99, 99, 99)'
+              setTimeout(() => {
+                activity.textContent = activities[activities.length - 1]
+                setTimeout(() => {
+                }, 2000)
+              }, 500)
+            }, 500)
+
+          } else {
+            tr.classList.remove('poor-view')
+            dates.filter(dt => dt.getAttribute('class') === buttonForConclusion.getAttribute('data-finish'))[0].textContent = ''
+            buttonForConclusion.classList.remove('btn-style-disable')
+            buttonForConclusion.classList.add('btn-style-finish')
+            buttonForConclusion.textContent = 'concluir'
+
+            activities.push(`🔔 ATUALIZAÇÃO: Tarefa [ ${tr.childNodes[1].textContent} ] reaberta 🙂👍🏽🔓`)
+
+            setTimeout(() => {
+              activity.classList.remove('vanished')
+              activity.style.background = 'rgb(0, 99, 99)'
+              setTimeout(() => {
+                activity.textContent = activities[activities.length - 1]
+                setTimeout(() => {
+                }, 2000)
+              }, 500)
+            }, 500)
+          }
+        })
+
+        buttonForExclusion.addEventListener('click', () => {
+          console.log(tr.childNodes)
+          if (tr.childNodes[4].textContent !== 'reabrir') {
+            activities.push(`🔔 ATUALIZAÇÃO: Tarefa [ ${tr.childNodes[1].textContent} ] removida 😎👍🏽❌`)
+            const operation = confirm('A tarefa será removida. Você confirma esta operação')
+            operation ? tr.innerHTML = '' : null
+
+            setTimeout(() => {
+              activity.classList.remove('vanished')
+              activity.style.background = 'rgb(200, 20, 0)'
+              setTimeout(() => {
+                activity.textContent = activities[activities.length - 1]
+                setTimeout(() => {
+                }, 2000)
+              }, 500)
+            }, 500)
+
+          } else {
+            setTimeout(() => {
+              warn.classList.remove('vanished')
+              setTimeout(() => {
+                warn.textContent = 'Tarefas concluídas não podem ser removidas'
+                setTimeout(() => {
+                  warn.textContent = ''
+                  setTimeout(() => {
+                    warn.classList.add('vanished')
+                  }, 500);
+                }, 1500)
+              }, 500)
+            }, 500)
+          }
+        })
+        
+      }
+
+      else {
+          setTimeout(() => {
+            document.getElementById('warn').classList.remove('vanished')
+            setTimeout(() => {
+              document.getElementById('warn').textContent = 'Tarefas sem descrição não são permitidas'
+              setTimeout(() => {
+                document.getElementById('warn').textContent = ''
+                setTimeout(() => {
+                  document.getElementById('warn').classList.add('vanished')
+                }, 500);
+              }, 1500)
+            }, 500)
+          }, 500)
+      }
+    }
+
+    addButton.addEventListener('click', includeTask)
+
+    confortableMode.addEventListener('click', () => {
+      manner === 0 ? manner = 1 : manner = 0
+      if (manner) {
+        document.body.style.background = 'linear-gradient(5deg, rgb(0, 99, 99), #222, rgb(33, 66, 99))';
+        taskInput.style.background = 'rgb(33, 66, 66)'
+      } else {
+        document.body.style.background = 'inherit';
+        taskInput.style.background = 'inherit'
+      }
+      const rows = document.querySelectorAll('.box-row')
+      rows.forEach(row => {
+        manner ? row.style.color = 'white' : row.style.color = 'inherit'
+      })
+    })
+
+  </script>
+
+</body>
+</html>

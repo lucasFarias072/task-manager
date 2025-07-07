@@ -47,6 +47,13 @@
     th {
       background-color: #f4f4f4;
     }
+    label {
+      background: rgb(33, 66, 99);
+      border: black solid 1px;
+      color: aqua;
+      padding: .5rem 1.5rem;
+      border-radius: .5rem;
+    }
     .btn-style-finish {
       background: rgb(0, 99, 99);
       border-radius: .3rem;
@@ -126,7 +133,7 @@
   <h1>Gerenciamento de Tarefas</h1>
 <div>
 <label for="descricaoTarefa">Descrição da Tarefa:</label>
-<input type="text" id="descricaoTarefa" placeholder="Ex: Concluir relatório">
+<input type="text" id="descricaoTarefa" class="task-input" placeholder="Ex: Concluir relatório" autofocus>
 </div>
 <button id="adicionarBtn">Adicionar Tarefa</button>
 <table id="tabelaTarefas">
@@ -195,7 +202,9 @@
     }
 
     const includeTask = () => {
+      document.querySelector('.task-input').focus()
       if (taskInput.value.trim() != '') {
+
         const tr = document.createElement('tr')
         tr.setAttribute('class', 'box-row')
 
@@ -217,6 +226,8 @@
           dataInicio: manageDate(),
           dataConclusao: "",
         }
+
+        taskInput.value = ''
 
         createTableComponent(tr, taskObject.id)
         createTableComponent(tr, taskObject.descricao)
@@ -339,14 +350,17 @@
     addButton.addEventListener('click', includeTask)
 
     confortableMode.addEventListener('click', () => {
+      document.querySelector('.task-input').focus()
       manner === 0 ? manner = 1 : manner = 0
       if (manner) {
         document.body.style.background = 'linear-gradient(5deg, rgb(0, 99, 99), #222, rgb(33, 66, 99))';
+        document.body.style.textShadow = '0 0 .5rem #222'
         taskInput.style.background = 'rgb(33, 66, 66)'
       } else {
         document.body.style.background = 'inherit';
         taskInput.style.background = 'inherit'
       }
+
       const rows = document.querySelectorAll('.box-row')
       rows.forEach(row => {
         manner ? row.style.color = 'white' : row.style.color = 'inherit'

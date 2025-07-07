@@ -51,7 +51,7 @@
       background: rgb(33, 66, 99);
       border: black solid 1px;
       color: aqua;
-      padding: .5rem 1.5rem;
+      padding: 1rem 1.5rem .2rem 1.5rem;
       border-radius: .5rem;
     }
     .btn-style-finish {
@@ -226,7 +226,8 @@
           dataInicio: manageDate(),
           dataConclusao: "",
         }
-
+        
+        let inputBefore = taskInput.value
         taskInput.value = ''
 
         createTableComponent(tr, taskObject.id)
@@ -243,7 +244,7 @@
           manner ? row.style.color = 'white' : row.style.color = 'inherit'
         })
 
-        activities.push(`🔔 ATUALIZAÇÃO: Tarefa [ ${taskInput.value} ] criada 🥳👍🏽`)
+        activities.push(`🔔 ATUALIZAÇÃO: Tarefa [ ${inputBefore} ] criada 🥳👍🏽`)
 
         setTimeout(() => {
           activity.classList.remove('vanished')
